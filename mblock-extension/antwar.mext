@@ -56,7 +56,13 @@
           {
             opcode: 'moveAnts',
             blockType: Scratch.BlockType.COMMAND,
-            text: 'déplacer toutes les fourmis'
+            text: 'déplacer toutes les fourmis [ITERATIONS] fois',
+            arguments: {
+              ITERATIONS: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 1
+              }
+            }
           },
           {
             opcode: 'getAntCount',
@@ -88,8 +94,102 @@
             opcode: 'getAntEnergy',
             blockType: Scratch.BlockType.REPORTER,
             text: 'énergie moyenne des fourmis'
+          },
+          {
+            opcode: 'createAntWithVar',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'créer [COUNT] fourmis avec énergie [ENERGY]',
+            arguments: {
+              COUNT: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 1
+              },
+              ENERGY: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 100
+              }
+            }
+          },
+          {
+            opcode: 'addFoodWithVar',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'ajouter [AMOUNT] nourriture à x: [X] y: [Y]',
+            arguments: {
+              AMOUNT: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 10
+              },
+              X: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 200
+              },
+              Y: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 200
+              }
+            }
+          },
+          {
+            opcode: 'compareAntCount',
+            blockType: Scratch.BlockType.BOOLEAN,
+            text: 'nombre de fourmis [OP] [VALUE]',
+            arguments: {
+              OP: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'operators',
+                defaultValue: '='
+              },
+              VALUE: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 10
+              }
+            }
+          },
+          {
+            opcode: 'compareFoodCount',
+            blockType: Scratch.BlockType.BOOLEAN,
+            text: 'quantité de nourriture [OP] [VALUE]',
+            arguments: {
+              OP: {
+                type: Scratch.ArgumentType.STRING,
+                menu: 'operators',
+                defaultValue: '='
+              },
+              VALUE: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 10
+              }
+            }
+          },
+          {
+            opcode: 'addEnergyToAnts',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'ajouter [ENERGY] énergie à toutes les fourmis',
+            arguments: {
+              ENERGY: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 10
+              }
+            }
+          },
+          {
+            opcode: 'setAntSpeed',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'définir vitesse fourmi [SPEED]',
+            arguments: {
+              SPEED: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 1.5
+              }
+            }
           }
-        ]
+        ],
+        menus: {
+          operators: {
+            acceptReporters: false,
+            items: ['=', '>', '<', '≥', '≤', '≠']
+          }
+        }
       };
     }
 
@@ -112,6 +212,29 @@
       return true;
     }
 
+    createAntWithVar(args) {
+      const count = Math.floor(parseFloat(args.COUNT));
+      const energy = parseFloat(args.ENERGY);
+
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * this.width;
+        const y = Math.random() * this.height;
+
+        this.ants.push({
+          id: this.ants.length,
+          x: x,
+          y: y,
+          energy: energy,
+          maxEnergy: energy,
+          direction: Math.random() * 360,
+          carryingFood: false,
+          speed: 1.5
+        });
+      }
+
+      return true;
+    }
+
     addFood(args) {
       const x = parseFloat(args.X);
       const y = parseFloat(args.Y);
@@ -126,8 +249,25 @@
       return true;
     }
 
-    moveAnts() {
-      for (let step = 0; step < this.simulationSpeed; step++) {
+    addFoodWithVar(args) {
+      const amount = Math.floor(parseFloat(args.AMOUNT));
+      const x = parseFloat(args.X);
+      const y = parseFloat(args.Y);
+
+      this.food.push({
+        id: this.food.length,
+        x: x,
+        y: y,
+        amount: amount
+      });
+
+      return true;
+    }
+
+    moveAnts(args) {
+      const iterations = Math.floor(parseFloat(args.ITERATIONS)) || 1;
+
+      for (let step = 0; step < iterations; step++) {
         // Move each ant
         for (let i = 0; i < this.ants.length; i++) {
           const ant = this.ants[i];
@@ -229,10 +369,76 @@
       return true;
     }
 
+    setAntSpeed(args) {
+      const speed = parseFloat(args.SPEED);
+      for (let i = 0; i < this.ants.length; i++) {
+        this.ants[i].speed = speed;
+      }
+      return true;
+    }
+
     resetSimulation() {
       this.ants = [];
       this.food = [];
       this.simulationSpeed = 1;
+      return true;
+    }
+
+    compareAntCount(args) {
+      const count = this.ants.length;
+      const value = parseFloat(args.VALUE);
+      const op = args.OP;
+
+      switch (op) {
+        case '=':
+          return count === value;
+        case '>':
+          return count > value;
+        case '<':
+          return count < value;
+        case '≥':
+          return count >= value;
+        case '≤':
+          return count <= value;
+        case '≠':
+          return count !== value;
+        default:
+          return false;
+      }
+    }
+
+    compareFoodCount(args) {
+      let total = 0;
+      for (let i = 0; i < this.food.length; i++) {
+        total += this.food[i].amount;
+      }
+
+      const value = parseFloat(args.VALUE);
+      const op = args.OP;
+
+      switch (op) {
+        case '=':
+          return total === value;
+        case '>':
+          return total > value;
+        case '<':
+          return total < value;
+        case '≥':
+          return total >= value;
+        case '≤':
+          return total <= value;
+        case '≠':
+          return total !== value;
+        default:
+          return false;
+      }
+    }
+
+    addEnergyToAnts(args) {
+      const energy = parseFloat(args.ENERGY);
+      for (let i = 0; i < this.ants.length; i++) {
+        this.ants[i].energy += energy;
+      }
       return true;
     }
   }

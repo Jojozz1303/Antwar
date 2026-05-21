@@ -1,103 +1,241 @@
-{
-  "extensionId": "antwar",
-  "name": {
-    "en": "Antwar",
-    "fr": "Antwar"
-  },
-  "description": {
-    "en": "Ant war simulation extension",
-    "fr": "Extension de simulation de guerre de fourmis"
-  },
-  "version": "1.0.0",
-  "author": "Jojozz1303",
-  "license": "MIT",
-  "category": "simulation",
-  "blocks": [
-    {
-      "opcode": "createAnt",
-      "blockType": "command",
-      "text": {
-        "en": "create ant at x: [X] y: [Y] energy: [ENERGY]",
-        "fr": "créer une fourmi à x: [X] y: [Y] énergie: [ENERGY]"
-      },
-      "arguments": {
-        "X": {
-          "type": "number",
-          "defaultValue": 100
-        },
-        "Y": {
-          "type": "number",
-          "defaultValue": 100
-        },
-        "ENERGY": {
-          "type": "number",
-          "defaultValue": 100
-        }
-      }
-    },
-    {
-      "opcode": "addFood",
-      "blockType": "command",
-      "text": {
-        "en": "add food at x: [X] y: [Y]",
-        "fr": "ajouter nourriture à x: [X] y: [Y]"
-      },
-      "arguments": {
-        "X": {
-          "type": "number",
-          "defaultValue": 200
-        },
-        "Y": {
-          "type": "number",
-          "defaultValue": 200
-        }
-      }
-    },
-    {
-      "opcode": "moveAnts",
-      "blockType": "command",
-      "text": {
-        "en": "move all ants",
-        "fr": "déplacer toutes les fourmis"
-      }
-    },
-    {
-      "opcode": "getAntCount",
-      "blockType": "reporter",
-      "text": {
-        "en": "ant count",
-        "fr": "nombre de fourmis"
-      }
-    },
-    {
-      "opcode": "getFoodCount",
-      "blockType": "reporter",
-      "text": {
-        "en": "food amount",
-        "fr": "quantité de nourriture"
-      }
-    },
-    {
-      "opcode": "setSimulationSpeed",
-      "blockType": "command",
-      "text": {
-        "en": "set simulation speed [SPEED]",
-        "fr": "vitesse simulation [SPEED]"
-      },
-      "arguments": {
-        "SPEED": {
-          "type": "number",
-          "defaultValue": 1
-        }
-      }
-    },
-    {
-      "opcode": "resetSimulation",
-      "blockType": "command",
-      "text": {
-        "en": "reset simulation",
-        "fr": "réinitialiser la simulation"
-      }
+(function(Scratch) {
+  'use strict';
+
+  class AntwarExtension {
+    constructor(runtime) {
+      this.runtime = runtime;
+      this.ants = [];
+      this.food = [];
+      this.simulationSpeed = 1;
+      this.width = 480;
+      this.height = 360;
     }
-  ]
-}
+
+    getInfo() {
+      return {
+        id: 'antwar',
+        name: 'Antwar',
+        color1: '#667eea',
+        color2: '#764ba2',
+        color3: '#5568d3',
+        blocks: [
+          {
+            opcode: 'createAnt',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'créer une fourmi à x: [X] y: [Y] énergie: [ENERGY]',
+            arguments: {
+              X: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 100
+              },
+              Y: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 100
+              },
+              ENERGY: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 100
+              }
+            }
+          },
+          {
+            opcode: 'addFood',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'ajouter nourriture à x: [X] y: [Y]',
+            arguments: {
+              X: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 200
+              },
+              Y: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 200
+              }
+            }
+          },
+          {
+            opcode: 'moveAnts',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'déplacer toutes les fourmis'
+          },
+          {
+            opcode: 'getAntCount',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'nombre de fourmis'
+          },
+          {
+            opcode: 'getFoodCount',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'quantité de nourriture'
+          },
+          {
+            opcode: 'setSimulationSpeed',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'vitesse simulation [SPEED]',
+            arguments: {
+              SPEED: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 1
+              }
+            }
+          },
+          {
+            opcode: 'resetSimulation',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'réinitialiser la simulation'
+          },
+          {
+            opcode: 'getAntEnergy',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'énergie moyenne des fourmis'
+          }
+        ]
+      };
+    }
+
+    createAnt(args) {
+      const x = parseFloat(args.X);
+      const y = parseFloat(args.Y);
+      const energy = parseFloat(args.ENERGY);
+
+      this.ants.push({
+        id: this.ants.length,
+        x: x,
+        y: y,
+        energy: energy,
+        maxEnergy: energy,
+        direction: Math.random() * 360,
+        carryingFood: false,
+        speed: 1.5
+      });
+
+      return true;
+    }
+
+    addFood(args) {
+      const x = parseFloat(args.X);
+      const y = parseFloat(args.Y);
+
+      this.food.push({
+        id: this.food.length,
+        x: x,
+        y: y,
+        amount: 10
+      });
+
+      return true;
+    }
+
+    moveAnts() {
+      for (let step = 0; step < this.simulationSpeed; step++) {
+        // Move each ant
+        for (let i = 0; i < this.ants.length; i++) {
+          const ant = this.ants[i];
+
+          // Random walk
+          ant.direction += (Math.random() - 0.5) * 45;
+          ant.direction = ant.direction % 360;
+
+          const angle = (ant.direction * Math.PI) / 180;
+          ant.x += Math.cos(angle) * ant.speed;
+          ant.y += Math.sin(angle) * ant.speed;
+
+          // Energy consumption
+          ant.energy -= 0.2;
+
+          // Find closest food
+          let closestFood = null;
+          let closestDistance = Infinity;
+
+          for (let j = 0; j < this.food.length; j++) {
+            const food = this.food[j];
+            const dx = food.x - ant.x;
+            const dy = food.y - ant.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestFood = food;
+            }
+          }
+
+          // Move towards food if close
+          if (closestFood && closestDistance < 120) {
+            const dx = closestFood.x - ant.x;
+            const dy = closestFood.y - ant.y;
+            ant.direction = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+            // Eat food if very close
+            if (closestDistance < 15 && closestFood.amount > 0) {
+              ant.carryingFood = true;
+              closestFood.amount -= 1;
+              ant.energy = Math.min(ant.energy + 15, ant.maxEnergy);
+            }
+          }
+
+          // Boundaries with bounce
+          if (ant.x < 0) {
+            ant.x = 0;
+            ant.direction = 180 - ant.direction;
+          }
+          if (ant.x > this.width) {
+            ant.x = this.width;
+            ant.direction = 180 - ant.direction;
+          }
+          if (ant.y < 0) {
+            ant.y = 0;
+            ant.direction = -ant.direction;
+          }
+          if (ant.y > this.height) {
+            ant.y = this.height;
+            ant.direction = -ant.direction;
+          }
+        }
+
+        // Remove dead ants
+        this.ants = this.ants.filter(ant => ant.energy > 0);
+
+        // Remove empty food
+        this.food = this.food.filter(food => food.amount > 0);
+      }
+
+      return true;
+    }
+
+    getAntCount() {
+      return this.ants.length;
+    }
+
+    getFoodCount() {
+      let total = 0;
+      for (let i = 0; i < this.food.length; i++) {
+        total += this.food[i].amount;
+      }
+      return total;
+    }
+
+    getAntEnergy() {
+      if (this.ants.length === 0) return 0;
+      let total = 0;
+      for (let i = 0; i < this.ants.length; i++) {
+        total += this.ants[i].energy;
+      }
+      return Math.round((total / this.ants.length) * 10) / 10;
+    }
+
+    setSimulationSpeed(args) {
+      const speed = parseFloat(args.SPEED);
+      this.simulationSpeed = Math.max(1, Math.min(10, speed));
+      return true;
+    }
+
+    resetSimulation() {
+      this.ants = [];
+      this.food = [];
+      this.simulationSpeed = 1;
+      return true;
+    }
+  }
+
+  Scratch.extensions.register(new AntwarExtension());
+})(Scratch);

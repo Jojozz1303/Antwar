@@ -9,6 +9,7 @@
       this.simulationSpeed = 1;
       this.width = 480;
       this.height = 360;
+      this.antSpeed = 1.5;
     }
 
     getInfo() {
@@ -39,10 +40,44 @@
             }
           },
           {
+            opcode: 'createMultipleAnts',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'créer [COUNT] fourmis avec énergie [ENERGY]',
+            arguments: {
+              COUNT: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 5
+              },
+              ENERGY: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 100
+              }
+            }
+          },
+          {
             opcode: 'addFood',
             blockType: Scratch.BlockType.COMMAND,
             text: 'ajouter nourriture à x: [X] y: [Y]',
             arguments: {
+              X: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 200
+              },
+              Y: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 200
+              }
+            }
+          },
+          {
+            opcode: 'addMultipleFood',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'ajouter [AMOUNT] nourriture à x: [X] y: [Y]',
+            arguments: {
+              AMOUNT: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 10
+              },
               X: {
                 type: Scratch.ArgumentType.NUMBER,
                 defaultValue: 200
@@ -75,6 +110,11 @@
             text: 'quantité de nourriture'
           },
           {
+            opcode: 'getAntEnergy',
+            blockType: Scratch.BlockType.REPORTER,
+            text: 'énergie moyenne des fourmis'
+          },
+          {
             opcode: 'setSimulationSpeed',
             blockType: Scratch.BlockType.COMMAND,
             text: 'vitesse simulation [SPEED]',
@@ -86,48 +126,31 @@
             }
           },
           {
+            opcode: 'setAntSpeed',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'vitesse fourmis [SPEED]',
+            arguments: {
+              SPEED: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 1.5
+              }
+            }
+          },
+          {
+            opcode: 'addEnergyToAnts',
+            blockType: Scratch.BlockType.COMMAND,
+            text: 'ajouter [ENERGY] énergie à toutes les fourmis',
+            arguments: {
+              ENERGY: {
+                type: Scratch.ArgumentType.NUMBER,
+                defaultValue: 10
+              }
+            }
+          },
+          {
             opcode: 'resetSimulation',
             blockType: Scratch.BlockType.COMMAND,
             text: 'réinitialiser la simulation'
-          },
-          {
-            opcode: 'getAntEnergy',
-            blockType: Scratch.BlockType.REPORTER,
-            text: 'énergie moyenne des fourmis'
-          },
-          {
-            opcode: 'createAntWithVar',
-            blockType: Scratch.BlockType.COMMAND,
-            text: 'créer [COUNT] fourmis avec énergie [ENERGY]',
-            arguments: {
-              COUNT: {
-                type: Scratch.ArgumentType.NUMBER,
-                defaultValue: 1
-              },
-              ENERGY: {
-                type: Scratch.ArgumentType.NUMBER,
-                defaultValue: 100
-              }
-            }
-          },
-          {
-            opcode: 'addFoodWithVar',
-            blockType: Scratch.BlockType.COMMAND,
-            text: 'ajouter [AMOUNT] nourriture à x: [X] y: [Y]',
-            arguments: {
-              AMOUNT: {
-                type: Scratch.ArgumentType.NUMBER,
-                defaultValue: 10
-              },
-              X: {
-                type: Scratch.ArgumentType.NUMBER,
-                defaultValue: 200
-              },
-              Y: {
-                type: Scratch.ArgumentType.NUMBER,
-                defaultValue: 200
-              }
-            }
           },
           {
             opcode: 'compareAntCount',
@@ -160,33 +183,11 @@
                 defaultValue: 10
               }
             }
-          },
-          {
-            opcode: 'addEnergyToAnts',
-            blockType: Scratch.BlockType.COMMAND,
-            text: 'ajouter [ENERGY] énergie à toutes les fourmis',
-            arguments: {
-              ENERGY: {
-                type: Scratch.ArgumentType.NUMBER,
-                defaultValue: 10
-              }
-            }
-          },
-          {
-            opcode: 'setAntSpeed',
-            blockType: Scratch.BlockType.COMMAND,
-            text: 'définir vitesse fourmi [SPEED]',
-            arguments: {
-              SPEED: {
-                type: Scratch.ArgumentType.NUMBER,
-                defaultValue: 1.5
-              }
-            }
           }
         ],
         menus: {
           operators: {
-            acceptReporters: false,
+            acceptReporters: true,
             items: ['=', '>', '<', '≥', '≤', '≠']
           }
         }
@@ -199,20 +200,16 @@
       const energy = parseFloat(args.ENERGY);
 
       this.ants.push({
-        id: this.ants.length,
         x: x,
         y: y,
         energy: energy,
         maxEnergy: energy,
         direction: Math.random() * 360,
-        carryingFood: false,
-        speed: 1.5
+        speed: this.antSpeed
       });
-
-      return true;
     }
 
-    createAntWithVar(args) {
+    createMultipleAnts(args) {
       const count = Math.floor(parseFloat(args.COUNT));
       const energy = parseFloat(args.ENERGY);
 
@@ -221,18 +218,14 @@
         const y = Math.random() * this.height;
 
         this.ants.push({
-          id: this.ants.length,
           x: x,
           y: y,
           energy: energy,
           maxEnergy: energy,
           direction: Math.random() * 360,
-          carryingFood: false,
-          speed: 1.5
+          speed: this.antSpeed
         });
       }
-
-      return true;
     }
 
     addFood(args) {
@@ -240,50 +233,38 @@
       const y = parseFloat(args.Y);
 
       this.food.push({
-        id: this.food.length,
         x: x,
         y: y,
         amount: 10
       });
-
-      return true;
     }
 
-    addFoodWithVar(args) {
+    addMultipleFood(args) {
       const amount = Math.floor(parseFloat(args.AMOUNT));
       const x = parseFloat(args.X);
       const y = parseFloat(args.Y);
 
       this.food.push({
-        id: this.food.length,
         x: x,
         y: y,
         amount: amount
       });
-
-      return true;
     }
 
     moveAnts(args) {
       const iterations = Math.floor(parseFloat(args.ITERATIONS)) || 1;
 
       for (let step = 0; step < iterations; step++) {
-        // Move each ant
         for (let i = 0; i < this.ants.length; i++) {
           const ant = this.ants[i];
 
-          // Random walk
           ant.direction += (Math.random() - 0.5) * 45;
-          ant.direction = ant.direction % 360;
-
           const angle = (ant.direction * Math.PI) / 180;
           ant.x += Math.cos(angle) * ant.speed;
           ant.y += Math.sin(angle) * ant.speed;
 
-          // Energy consumption
           ant.energy -= 0.2;
 
-          // Find closest food
           let closestFood = null;
           let closestDistance = Infinity;
 
@@ -299,47 +280,26 @@
             }
           }
 
-          // Move towards food if close
           if (closestFood && closestDistance < 120) {
             const dx = closestFood.x - ant.x;
             const dy = closestFood.y - ant.y;
             ant.direction = (Math.atan2(dy, dx) * 180) / Math.PI;
 
-            // Eat food if very close
             if (closestDistance < 15 && closestFood.amount > 0) {
-              ant.carryingFood = true;
               closestFood.amount -= 1;
               ant.energy = Math.min(ant.energy + 15, ant.maxEnergy);
             }
           }
 
-          // Boundaries with bounce
-          if (ant.x < 0) {
-            ant.x = 0;
-            ant.direction = 180 - ant.direction;
-          }
-          if (ant.x > this.width) {
-            ant.x = this.width;
-            ant.direction = 180 - ant.direction;
-          }
-          if (ant.y < 0) {
-            ant.y = 0;
-            ant.direction = -ant.direction;
-          }
-          if (ant.y > this.height) {
-            ant.y = this.height;
-            ant.direction = -ant.direction;
-          }
+          if (ant.x < 0 || ant.x > this.width) ant.direction = 180 - ant.direction;
+          if (ant.y < 0 || ant.y > this.height) ant.direction = -ant.direction;
+          ant.x = Math.max(0, Math.min(this.width, ant.x));
+          ant.y = Math.max(0, Math.min(this.height, ant.y));
         }
 
-        // Remove dead ants
         this.ants = this.ants.filter(ant => ant.energy > 0);
-
-        // Remove empty food
         this.food = this.food.filter(food => food.amount > 0);
       }
-
-      return true;
     }
 
     getAntCount() {
@@ -364,24 +324,27 @@
     }
 
     setSimulationSpeed(args) {
-      const speed = parseFloat(args.SPEED);
-      this.simulationSpeed = Math.max(1, Math.min(10, speed));
-      return true;
+      this.simulationSpeed = Math.max(1, Math.min(10, parseFloat(args.SPEED)));
     }
 
     setAntSpeed(args) {
-      const speed = parseFloat(args.SPEED);
+      this.antSpeed = parseFloat(args.SPEED);
       for (let i = 0; i < this.ants.length; i++) {
-        this.ants[i].speed = speed;
+        this.ants[i].speed = this.antSpeed;
       }
-      return true;
+    }
+
+    addEnergyToAnts(args) {
+      const energy = parseFloat(args.ENERGY);
+      for (let i = 0; i < this.ants.length; i++) {
+        this.ants[i].energy += energy;
+      }
     }
 
     resetSimulation() {
       this.ants = [];
       this.food = [];
       this.simulationSpeed = 1;
-      return true;
     }
 
     compareAntCount(args) {
@@ -390,20 +353,13 @@
       const op = args.OP;
 
       switch (op) {
-        case '=':
-          return count === value;
-        case '>':
-          return count > value;
-        case '<':
-          return count < value;
-        case '≥':
-          return count >= value;
-        case '≤':
-          return count <= value;
-        case '≠':
-          return count !== value;
-        default:
-          return false;
+        case '=': return count === value;
+        case '>': return count > value;
+        case '<': return count < value;
+        case '≥': return count >= value;
+        case '≤': return count <= value;
+        case '≠': return count !== value;
+        default: return false;
       }
     }
 
@@ -417,29 +373,14 @@
       const op = args.OP;
 
       switch (op) {
-        case '=':
-          return total === value;
-        case '>':
-          return total > value;
-        case '<':
-          return total < value;
-        case '≥':
-          return total >= value;
-        case '≤':
-          return total <= value;
-        case '≠':
-          return total !== value;
-        default:
-          return false;
+        case '=': return total === value;
+        case '>': return total > value;
+        case '<': return total < value;
+        case '≥': return total >= value;
+        case '≤': return total <= value;
+        case '≠': return total !== value;
+        default: return false;
       }
-    }
-
-    addEnergyToAnts(args) {
-      const energy = parseFloat(args.ENERGY);
-      for (let i = 0; i < this.ants.length; i++) {
-        this.ants[i].energy += energy;
-      }
-      return true;
     }
   }
 

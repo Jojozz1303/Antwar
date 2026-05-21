@@ -1,0 +1,103 @@
+{
+  "extensionId": "antwar",
+  "name": {
+    "en": "Antwar",
+    "fr": "Antwar"
+  },
+  "description": {
+    "en": "Ant war simulation extension",
+    "fr": "Extension de simulation de guerre de fourmis"
+  },
+  "version": "1.0.0",
+  "author": "Jojozz1303",
+  "license": "MIT",
+  "category": "simulation",
+  "blocks": [
+    {
+      "opcode": "createAnt",
+      "blockType": "command",
+      "text": {
+        "en": "create ant at x: [X] y: [Y] energy: [ENERGY]",
+        "fr": "créer une fourmi à x: [X] y: [Y] énergie: [ENERGY]"
+      },
+      "arguments": {
+        "X": {
+          "type": "number",
+          "defaultValue": 100
+        },
+        "Y": {
+          "type": "number",
+          "defaultValue": 100
+        },
+        "ENERGY": {
+          "type": "number",
+          "defaultValue": 100
+        }
+      }
+    },
+    {
+      "opcode": "addFood",
+      "blockType": "command",
+      "text": {
+        "en": "add food at x: [X] y: [Y]",
+        "fr": "ajouter nourriture à x: [X] y: [Y]"
+      },
+      "arguments": {
+        "X": {
+          "type": "number",
+          "defaultValue": 200
+        },
+        "Y": {
+          "type": "number",
+          "defaultValue": 200
+        }
+      }
+    },
+    {
+      "opcode": "moveAnts",
+      "blockType": "command",
+      "text": {
+        "en": "move all ants",
+        "fr": "déplacer toutes les fourmis"
+      }
+    },
+    {
+      "opcode": "getAntCount",
+      "blockType": "reporter",
+      "text": {
+        "en": "ant count",
+        "fr": "nombre de fourmis"
+      }
+    },
+    {
+      "opcode": "getFoodCount",
+      "blockType": "reporter",
+      "text": {
+        "en": "food amount",
+        "fr": "quantité de nourriture"
+      }
+    },
+    {
+      "opcode": "setSimulationSpeed",
+      "blockType": "command",
+      "text": {
+        "en": "set simulation speed [SPEED]",
+        "fr": "vitesse simulation [SPEED]"
+      },
+      "arguments": {
+        "SPEED": {
+          "type": "number",
+          "defaultValue": 1
+        }
+      }
+    },
+    {
+      "opcode": "resetSimulation",
+      "blockType": "command",
+      "text": {
+        "en": "reset simulation",
+        "fr": "réinitialiser la simulation"
+      }
+    }
+  ]
+}

@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Antwar - Simulation de Fourmis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .canvas-wrapper {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        #canvas {
+            display: block;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            width: 100%;
+            height: 600px;
+        }
+
+        .control-panel {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+
+        .control-panel h2 {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .control-group {
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        .control-group h3 {
+            color: #764ba2;
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            color: #666;
+            min-width: 40px;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 12px;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #667eea;
+            width: 100%;
+            margin-top: 5px;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #667eea15 0%, #764ba215 100%);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .stat-item label {
+            color: #666;
+            font-weight: 600;
+        }
+
+        .stat-item value {
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .slider-group label {
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .toggle-btn {
+            background: #f0f0f0;
+            color: #666;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .toggle-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            #canvas {
+                height: 400px;
+            }
+
+            .control-panel {
+                max-height: none;
+            }
+        }
+
+        .legend {
+            font-size: 11px;
+            color: #999;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-wrapper">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="control-panel">
+            <h2>⚙️ Antwar</h2>
+
+            <!-- Création de fourmis -->
+            <div class="control-group">
+                <h3>🐜 Fourmis</h3>
+                <div class="input-group">
+                    <label>X:</label>
+                    <input type="number" id="antX" value="100" min="0" max="800">
+                </div>
+                <div class="input-group">
+                    <label>Y:</label>
+                    <input type="number" id="antY" value="100" min="0" max="600">
+                </div>
+                <div class="input-group">
+                    <label>Énergie:</label>
+                    <input type="number" id="antEnergy" value="100" min="1" max="500">
+                </div>
+                <button class="btn-primary" onclick="createSingleAnt()">➕ Créer une fourmi</button>
+                
+                <div class="input-group" style="margin-top: 10px;">
+                    <label>Nombre:</label>
+                    <input type="number" id="antCount" value="5" min="1" max="100">
+                </div>
+                <div class="input-group">
+                    <label>Énergie:</label>
+                    <input type="number" id="antMultiEnergy" value="100" min="1" max="500">
+                </div>
+                <button class="btn-secondary" onclick="createMultipleAnts()">➕ Créer plusieurs</button>
+            </div>
+
+            <!-- Création de nourriture -->
+            <div class="control-group">
+                <h3>🍽️ Nourriture</h3>
+                <div class="input-group">
+                    <label>X:</label>
+                    <input type="number" id="foodX" value="200" min="0" max="800">
+                </div>
+                <div class="input-group">
+                    <label>Y:</label>
+                    <input type="number" id="foodY" value="200" min="0" max="600">
+                </div>
+                <button class="btn-primary" onclick="addSingleFood()">➕ Ajouter nourriture</button>
+
+                <div class="input-group" style="margin-top: 10px;">
+                    <label>Quantité:</label>
+                    <input type="number" id="foodAmount" value="10" min="1" max="100">
+                </div>
+                <button class="btn-secondary" onclick="addMultipleFood()">➕ Ajouter plusieurs</button>
+            </div>
+
+            <!-- Contrôle de simulation -->
+            <div class="control-group">
+                <h3>⚡ Simulation</h3>
+                <div class="slider-group">
+                    <label>
+                        Vitesse simulation
+                        <span id="speedValue">1</span>
+                    </label>
+                    <input type="range" id="simSpeed" min="0.5" max="5" step="0.5" value="1" oninput="updateSimSpeed()">
+                </div>
+
+                <div class="slider-group" style="margin-top: 15px;">
+                    <label>
+                        Vitesse fourmis
+                        <span id="antSpeedValue">1.5</span>
+                    </label>
+                    <input type="range" id="antSpeedSlider" min="0.5" max="5" step="0.5" value="1.5" oninput="updateAntSpeed()">
+                </div>
+
+                <button id="playPauseBtn" class="toggle-btn active" onclick="toggleSimulation()">⏸️ Pause</button>
+                <button class="btn-secondary" onclick="resetSimulation()">🔄 Réinitialiser</button>
+            </div>
+
+            <!-- Statistiques -->
+            <div class="stats">
+                <div class="stat-item">
+                    <label>Fourmis:</label>
+                    <value id="statAnts">0</value>
+                </div>
+                <div class="stat-item">
+                    <label>Nourriture:</label>
+                    <value id="statFood">0</value>
+                </div>
+                <div class="stat-item">
+                    <label>Énergie moy:</label>
+                    <value id="statEnergy">0</value>
+                </div>
+            </div>
+
+            <!-- Légende -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FF6B6B;"></div>
+                    <span>Fourmis</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #FFD93D;"></div>
+                    <span>Nourriture</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        class AntwarSimulation {
+            constructor() {
+                this.ants = [];
+                this.food = [];
+                this.running = true;
+                this.simSpeed = 1;
+                this.antSpeed = 1.5;
+                this.frameCount = 0;
+                this.width = canvas.width;
+                this.height = canvas.height;
+            }
+
+            createAnt(x, y, energy) {
+                this.ants.push({
+                    x: x,
+                    y: y,
+                    energy: energy,
+                    maxEnergy: energy,
+                    direction: Math.random() * 360,
+                    speed: this.antSpeed
+                });
+            }
+
+            createMultipleAnts(count, energy) {
+                for (let i = 0; i < count; i++) {
+                    const x = Math.random() * this.width;
+                    const y = Math.random() * this.height;
+                    this.createAnt(x, y, energy);
+                }
+            }
+
+            addFood(x, y, amount = 10) {
+                this.food.push({
+                    x: x,
+                    y: y,
+                    amount: amount
+                });
+            }
+
+            moveAnts() {
+                for (let i = 0; i < this.ants.length; i++) {
+                    const ant = this.ants[i];
+
+                    ant.direction += (Math.random() - 0.5) * 45;
+                    const angle = (ant.direction * Math.PI) / 180;
+                    ant.x += Math.cos(angle) * ant.speed;
+                    ant.y += Math.sin(angle) * ant.speed;
+
+                    ant.energy -= 0.2;
+
+                    // Chercher la nourriture la plus proche
+                    let closestFood = null;
+                    let closestDistance = Infinity;
+
+                    for (let j = 0; j < this.food.length; j++) {
+                        const food = this.food[j];
+                        const dx = food.x - ant.x;
+                        const dy = food.y - ant.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestFood = food;
+                        }
+                    }
+
+                    // Se diriger vers la nourriture si proche
+                    if (closestFood && closestDistance < 120) {
+                        const dx = closestFood.x - ant.x;
+                        const dy = closestFood.y - ant.y;
+                        ant.direction = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+                        // Manger si très proche
+                        if (closestDistance < 15 && closestFood.amount > 0) {
+                            closestFood.amount -= 1;
+                            ant.energy = Math.min(ant.energy + 15, ant.maxEnergy);
+                        }
+                    }
+
+                    // Rebond sur les bords
+                    if (ant.x < 0 || ant.x > this.width) {
+                        ant.direction = 180 - ant.direction;
+                    }
+                    if (ant.y < 0 || ant.y > this.height) {
+                        ant.direction = -ant.direction;
+                    }
+
+                    ant.x = Math.max(0, Math.min(this.width, ant.x));
+                    ant.y = Math.max(0, Math.min(this.height, ant.y));
+                }
+
+                // Supprimer les fourmis mortes
+                this.ants = this.ants.filter(ant => ant.energy > 0);
+                this.food = this.food.filter(food => food.amount > 0);
+            }
+
+            draw() {
+                ctx.fillStyle = '#f5f7fa';
+                ctx.fillRect(0, 0, this.width, this.height);
+
+                // Dessiner la nourriture
+                ctx.fillStyle = '#FFD93D';
+                for (let food of this.food) {
+                    const radius = Math.min(8, 2 + food.amount / 5);
+                    ctx.beginPath();
+                    ctx.arc(food.x, food.y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Dessiner les fourmis
+                for (let ant of this.ants) {
+                    const angle = (ant.direction * Math.PI) / 180;
+                    const headX = ant.x + Math.cos(angle) * 8;
+                    const headY = ant.y + Math.sin(angle) * 8;
+
+                    // Corps
+                    ctx.fillStyle = '#FF6B6B';
+                    ctx.beginPath();
+                    ctx.arc(ant.x, ant.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Tête
+                    ctx.fillStyle = '#FF3333';
+                    ctx.beginPath();
+                    ctx.arc(headX, headY, 3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Barre d'énergie
+                    const energyPercent = ant.energy / ant.maxEnergy;
+                    ctx.strokeStyle = energyPercent > 0.5 ? '#66BB6A' : energyPercent > 0.25 ? '#FFA726' : '#EF5350';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(ant.x, ant.y, 8, 0, Math.PI * 2 * energyPercent);
+                    ctx.stroke();
+                }
+            }
+
+            reset() {
+                this.ants = [];
+                this.food = [];
+                this.frameCount = 0;
+            }
+
+            update() {
+                if (this.running && this.frameCount % (6 - Math.floor(this.simSpeed)) === 0) {
+                    this.moveAnts();
+                }
+                this.frameCount++;
+                this.draw();
+            }
+
+            getStats() {
+                let totalEnergy = 0;
+                for (let ant of this.ants) {
+                    totalEnergy += ant.energy;
+                }
+                const avgEnergy = this.ants.length > 0 ? Math.round(totalEnergy / this.ants.length * 10) / 10 : 0;
+
+                let totalFood = 0;
+                for (let food of this.food) {
+                    totalFood += food.amount;
+                }
+
+                return {
+                    ants: this.ants.length,
+                    food: totalFood,
+                    energy: avgEnergy
+                };
+            }
+        }
+
+        const sim = new AntwarSimulation();
+
+        function resizeCanvas() {
+            const wrapper = canvas.parentElement;
+            canvas.width = wrapper.offsetWidth;
+            canvas.height = wrapper.offsetHeight;
+            sim.width = canvas.width;
+            sim.height = canvas.height;
+        }
+
+        function createSingleAnt() {
+            const x = parseFloat(document.getElementById('antX').value);
+            const y = parseFloat(document.getElementById('antY').value);
+            const energy = parseFloat(document.getElementById('antEnergy').value);
+            sim.createAnt(x, y, energy);
+        }
+
+        function createMultipleAnts() {
+            const count = parseFloat(document.getElementById('antCount').value);
+            const energy = parseFloat(document.getElementById('antMultiEnergy').value);
+            sim.createMultipleAnts(count, energy);
+        }
+
+        function addSingleFood() {
+            const x = parseFloat(document.getElementById('foodX').value);
+            const y = parseFloat(document.getElementById('foodY').value);
+            sim.addFood(x, y, 10);
+        }
+
+        function addMultipleFood() {
+            const x = parseFloat(document.getElementById('foodX').value);
+            const y = parseFloat(document.getElementById('foodY').value);
+            const amount = parseFloat(document.getElementById('foodAmount').value);
+            sim.addFood(x, y, amount);
+        }
+
+        function updateSimSpeed() {
+            const value = parseFloat(document.getElementById('simSpeed').value);
+            sim.simSpeed = value;
+            document.getElementById('speedValue').textContent = value;
+        }
+
+        function updateAntSpeed() {
+            const value = parseFloat(document.getElementById('antSpeedSlider').value);
+            sim.antSpeed = value;
+            for (let ant of sim.ants) {
+                ant.speed = value;
+            }
+            document.getElementById('antSpeedValue').textContent = value;
+        }
+
+        function toggleSimulation() {
+            sim.running = !sim.running;
+            const btn = document.getElementById('playPauseBtn');
+            if (sim.running) {
+                btn.textContent = '⏸️ Pause';
+                btn.classList.add('active');
+            } else {
+                btn.textContent = '▶️ Lecture';
+                btn.classList.remove('active');
+            }
+        }
+
+        function resetSimulation() {
+            sim.reset();
+            document.getElementById('statAnts').textContent = '0';
+            document.getElementById('statFood').textContent = '0';
+            document.getElementById('statEnergy').textContent = '0';
+        }
+
+        function updateStats() {
+            const stats = sim.getStats();
+            document.getElementById('statAnts').textContent = stats.ants;
+            document.getElementById('statFood').textContent = stats.food;
+            document.getElementById('statEnergy').textContent = stats.energy;
+        }
+
+        function gameLoop() {
+            sim.update();
+            updateStats();
+            requestAnimationFrame(gameLoop);
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        gameLoop();
+    </script>
+</body>
+</html>

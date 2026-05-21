@@ -1,0 +1,21 @@
+{
+  "name": "antwar-mblock-extension",
+  "version": "1.0.0",
+  "description": "Extension mBlock pour Antwar - Guerre de fourmis",
+  "main": "extension.js",
+  "scripts": {
+    "test": "jest",
+    "build": "webpack"
+  },
+  "keywords": [
+    "mblock",
+    "ants",
+    "simulation",
+    "antwar"
+  ],
+  "author": "Jojozz1303",
+  "license": MIT",
+  "devDependencies": {
+    "scratch-vm": "^0.2.0"
+  }
+}
